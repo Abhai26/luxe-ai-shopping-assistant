@@ -98,15 +98,10 @@ sequenceDiagram
 ### How the stages relate
 
 ```mermaid
-gitGraph
-    commit id: "client's store (discovery)"
-    branch 01-store-only
-    checkout main
-    branch 02-chatbot-poc
-    commit id: "isolated chatbot POC"
-    checkout main
-    commit id: "integrate POC + evals + tracing"
-    commit id: "tests, CI, hardening"
+flowchart LR
+    S1["v1-store-only<br/>client's store, no AI"] -->|"discovery → POC"| S2["v2-chatbot-poc<br/>isolated assistant"]
+    S1 -->|"store carried over unchanged"| M["main<br/>integrated + evals + tracing"]
+    S2 -->|"chatbot/ package dropped in"| M
 ```
 
 ---

@@ -6,8 +6,8 @@ scoping it, proving it, writing the production code, wiring it into the client's
 system, and keeping it honest with evals.
 
 The standard arc is **Discovery → POC → Harden & Integrate**. LUXE walks through
-it across three stages, each preserved as a git tag
-(`01-store-only`, `02-chatbot-poc`) plus `main`.
+it across three stages, each earlier one preserved as a GitHub release
+(`v1-store-only`, `v2-chatbot-poc`) plus `main`.
 
 ---
 
@@ -102,7 +102,7 @@ an addition, not a rewrite.
 ```
 
 - `main` is the **living** branch (the only branch) — the finished product.
-- `01-store-only` and `02-chatbot-poc` are **frozen snapshots**, kept as git tags — each is "what
+- `01-store-only` and `02-chatbot-poc` are **frozen snapshots**, kept as releases `v1-store-only` and `v2-chatbot-poc` — each is "what
   the client saw at that stage". They are derived from `main` by removing code,
   never maintained in parallel, so a change on `main` never forces edits on them.
 - The overlap that matters — `agent.py`, `guardrails.py`, `pipeline.py` — is

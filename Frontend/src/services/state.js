@@ -22,6 +22,10 @@ export const state = {
   username: getLoggedInEmail() ? (localStorage.getItem(USERNAME_KEY) || '') : '',
   isAdmin: false, // refreshed asynchronously via checkIsAdmin() — see main.js / Profile.js
   cartItemCount: 0,
+  chatOpen: false,
+  chatMessages: [],
+  chatInput: '',
+  chatLoading: false,
   currentCategory: '',
   priceFilter: { min: null, max: null },  // price range filter
   products: [],

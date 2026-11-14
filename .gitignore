@@ -3,12 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+luxeenv
+clientenv
+
 
 # Virtual environments
 clothenv/
 .venv/
 venv/
-clientenv
 
 # Environment variables
 .env
@@ -37,9 +39,11 @@ htmlcov/
 # Logs
 *.log
 
+# Pydantic Logfire local cache
+.logfire/
+
 # Jupyter
 .ipynb_checkpoints/
 
 # Local scratch notebooks — never committed
 experiments/
-

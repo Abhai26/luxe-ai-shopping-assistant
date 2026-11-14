@@ -3,6 +3,7 @@
 README.md
 commands.md
 docs/
+clientenv
 
 # Python
 __pycache__/
@@ -21,6 +22,7 @@ venv/
 # Caches / logs / scratch
 .pytest_cache/
 .mypy_cache/
+.logfire/
 *.log
 experiments/
 
@@ -29,3 +31,5 @@ experiments/
 .idea/
 .DS_Store
 Thumbs.db
+tests/
+.github/

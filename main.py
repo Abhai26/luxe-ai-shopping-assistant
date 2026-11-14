@@ -1,24 +1,44 @@
 from contextlib import asynccontextmanager
 
+import logfire
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from backend.routes import products, products_bulk, orders, cart, auth, google_auth, profile
+from backend.routes import products, products_bulk, orders, cart, chatbot, auth, google_auth, profile
+from backend.config import settings
 from backend.database import ensure_indexes
+
+
+# Configure Logfire for Observability. The SDK looks for LOGFIRE_TOKEN; this
+# project historically stores it as LOGFIRE_API_KEY, so settings accepts either.
+# Configured before the lifespan below runs, so a startup failure is traced too.
+logfire.configure(
+    send_to_logfire='if-token-present',
+    token=settings.logfire_write_token,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Run once on startup: create the unique-account indexes in MongoDB."""
-    ensure_indexes()
+    try:
+        ensure_indexes()
+    except Exception:
+        logfire.exception("Startup failed: could not reach MongoDB to create indexes")
+        raise
     yield
 
 
+# Initialize FastAPI app
 app = FastAPI(lifespan=lifespan)
 
+logfire.instrument_fastapi(app)
+logfire.instrument_pydantic()
+logfire.instrument_pydantic_ai()  # agent run traces + online-evaluation events
+
 # The monolith serves every endpoint — both halves of each route module.
-ROUTE_MODULES = (products, products_bulk, orders, cart, auth, google_auth, profile)
+ROUTE_MODULES = (products, products_bulk, orders, cart, chatbot, auth, google_auth, profile)
 for module in ROUTE_MODULES:
     app.include_router(module.read_router)
     app.include_router(module.write_router)

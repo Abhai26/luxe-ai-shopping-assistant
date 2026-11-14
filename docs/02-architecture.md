@@ -8,12 +8,14 @@ flowchart TB
 
     subgraph APP["LUXE application"]
         FE["Frontend<br/>(static JS + CSS)"]
-        RE["Read endpoints<br/>list products, view cart,<br/>order history"]
+        RE["Read endpoints<br/>list products, view cart,<br/>order history, chat"]
         WR["Write endpoints<br/>add to cart, place order,<br/>register, admin product CRUD"]
-        BR["backend/ — shared code<br/>models · config · db · auth · utils"]
+        BR["backend/ — shared code<br/>models · config · db · auth · utils · chatbot"]
     end
 
     DB[("MongoDB Atlas")]
+    LLM["Groq<br/>(language models)"]
+    LOG["Pydantic Logfire"]
     GID["Google Identity"]
 
     U <--> FE
@@ -22,18 +24,21 @@ flowchart TB
     RE --> BR
     WR --> BR
     BR <--> DB
+    BR -->|chat / guardrails| LLM
+    BR -.trace.-> LOG
     FE <-->|sign-in| GID
     BR -->|verify token| GID
 ```
 
 Everything the shopper sees is the **frontend**. It only knows how to make small
 JSON requests. All the logic lives in the **backend**, which is the only thing
-that talks to the database.
+that talks to the database and to Groq.
 
 The backend's endpoints fall into two groups:
 
 - **Reads** — anything that only *looks at* data: listing products, viewing one
-  product, reading a cart, reading order history.
+  product, reading a cart, reading order history, and the chatbot (it only
+  queries the database, it never changes it).
 - **Writes** — anything that *changes* data: adding to a cart, placing an order,
   registering / logging in, editing a profile, and all the admin product
   operations.
@@ -58,9 +63,9 @@ python main.py
 ```
 
 One FastAPI process on **port 8000** that serves the frontend *and* every API
-endpoint. The frontend asks the backend where to send "write" requests (via a
-tiny `GET /config` endpoint); the monolith answers "same place as everything
-else."
+endpoint, including the chatbot. The frontend asks the backend where to send
+"write" requests (via a tiny `GET /config` endpoint); the monolith answers
+"same place as everything else."
 
 > New endpoints are added in one place: a decorator on `read_router` or
 > `write_router` inside the relevant `backend/routes/*.py` module — `main.py`
@@ -93,7 +98,7 @@ works differently: Google gives the browser a signed token, the backend
 verifies Google's signature (using the `google-auth` library), and trusts the
 email inside — no password involved.
 
-## What happens on a request — two walkthroughs
+## What happens on a request — three walkthroughs
 
 ### Loading the home page
 
@@ -133,4 +138,34 @@ sequenceDiagram
     end
     API-->>B: {message: "Item added to cart"}
     B->>API: GET /cart/(id)   (refresh the header badge)
+```
+
+### Asking the assistant
+
+See [AI Assistant](06-ai-assistant.md) for the full version. Short form:
+
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant API as Backend
+    participant G as Guardrails
+    participant A as Agent
+    participant DB as MongoDB
+
+    B->>API: POST /chat {message}
+    API->>G: is this message safe / not an attack?
+    alt flagged
+        API-->>B: polite refusal
+    else ok
+        API->>A: run the agent on the message
+        A->>DB: search_products(filters)  (if it's a product query)
+        DB-->>A: matches
+        A-->>API: short confirmation text
+        API->>G: is the reply safe?
+        alt reply flagged
+            API-->>B: polite refusal
+        else ok
+            API-->>B: {type: "products", message, data: [...]}
+        end
+    end
 ```

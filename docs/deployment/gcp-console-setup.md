@@ -51,7 +51,7 @@ GCP services are disabled by default to save resources. We need to turn on the o
 ### 2. Create an Artifact Registry (To store your Docker images)
 1. In the GCP Search Bar, type **Artifact Registry** and click it.
 2. Click **+ CREATE REPOSITORY** at the top.
-3. **Name:** `store-repo` (must match the repo name in `cloudbuild.yaml`)
+3. **Name:** `main-repo` (must match the repo name in `cloudbuild.yaml`)
 4. **Format:** Docker
 5. **Region:** `asia-south1` (Mumbai) — this must match your MongoDB Atlas cluster's region, so the app isn't paying a cross-continent round trip on every database call. *Remember this region, you will need it later.*
 6. Scroll down and click **Create**.
@@ -70,6 +70,14 @@ Manager, not in any file. `cloudbuild.yaml` reads them at deploy time.
 6. Click **+ CREATE SECRET** again. **Name:** `GOOGLE_CLIENT_ID`,
    **Secret value:** your OAuth client id
    (`...apps.googleusercontent.com`). Click **Create Secret**.
+7. Click **+ CREATE SECRET** again. **Name:** `GROQ_API_KEY`,
+   **Secret value:** your Groq API key (powers the shopping assistant and its
+   guardrails). Click **Create Secret**.
+8. Click **+ CREATE SECRET** again. **Name:** `LOGFIRE_TOKEN`,
+   **Secret value:** a write token from your Logfire project (**logfire.pydantic.dev**
+   → your project → Settings → Write tokens → Create write token). Without
+   this, the app runs fine but sends no traces and no eval scores anywhere —
+   see [AI Assistant](docs/06-ai-assistant.md). Click **Create Secret**.
 
 *To change a value later (e.g. after rotating the DB password): open the secret,
 click **+ NEW VERSION**, paste the new value, click **Add New Version**. The
@@ -84,17 +92,17 @@ We need to tell Google Cloud how to build and deploy your application.
 you don't need to create one. It looks like this:
 
 ```yaml
-# Replace `store-repo` with your Artifact Registry repo name and `store` with
+# Replace `main-repo` with your Artifact Registry repo name and `main-app` with
 # your desired Cloud Run service name if you chose different ones above.
 
 steps:
   # 1. Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/store-repo/main-app:$COMMIT_SHA', '.']
+    args: ['build', '-t', 'asia-south1-docker.pkg.dev/$PROJECT_ID/main-repo/main-app:$COMMIT_SHA', '.']
 
   # 2. Push the image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/store-repo/main-app:$COMMIT_SHA']
+    args: ['push', 'asia-south1-docker.pkg.dev/$PROJECT_ID/main-repo/main-app:$COMMIT_SHA']
 
   # 3. Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -102,35 +110,44 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'store'
+      - 'main-app'
       - '--image'
-      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/store-repo/main-app:$COMMIT_SHA'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/main-repo/main-app:$COMMIT_SHA'
       - '--region'
       - 'asia-south1'
       - '--allow-unauthenticated'
       - '--port'
-      - '8000' # Change this if your app runs on a different port internally!
+      - '8000'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--cpu-boost'
+      - '--timeout'
+      - '300'
       - '--set-secrets'
-      - 'MONGO_URI=MONGO_URI:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest'
+      - 'MONGO_URI=MONGO_URI:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GROQ_API_KEY=GROQ_API_KEY:latest,LOGFIRE_TOKEN=LOGFIRE_TOKEN:latest'
 
 images:
-  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/store-repo/main-app:$COMMIT_SHA'
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/main-repo/main-app:$COMMIT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY
 ```
 
 The `--set-secrets` line maps the Secret Manager secrets you created in Phase 2
-into the container as environment variables (`MONGO_URI`, `GOOGLE_CLIENT_ID`).
-Only edit this file if you deliberately want to change the region, service
-name, or repo name — and if you do, make sure your Artifact Registry
+into the container as environment variables (`MONGO_URI`, `GOOGLE_CLIENT_ID`,
+`GROQ_API_KEY`, `LOGFIRE_TOKEN`). `--memory`/`--cpu`/`--cpu-boost`/`--timeout` are sized for the
+LLM calls the chat pipeline makes, which run longer than a typical CRUD
+request. Only edit this file if you deliberately want to change the region,
+service name, or repo name — and if you do, make sure your Artifact Registry
 repository (Phase 2) is created in the **same region** you put here.
 
 ### If you do change it, push the change
 ```bash
 git add cloudbuild.yaml
 git commit -m "Update Cloud Build configuration"
-git push origin 01-store-only
+git push origin main
 ```
 
 ---
@@ -154,7 +171,7 @@ This is the most common place where beginners get stuck. Cloud Build acts like a
 7. Click **+ ADD ANOTHER ROLE** again.
 8. Search for and select **Logs Writer**.
 9. Click **+ ADD ANOTHER ROLE** again.
-10. Search for and select **Secret Manager Secret Accessor** (lets the deployed service read `MONGO_URI` and `GOOGLE_CLIENT_ID`).
+10. Search for and select **Secret Manager Secret Accessor** (lets the deployed service read `MONGO_URI`, `GOOGLE_CLIENT_ID`, `GROQ_API_KEY`, and `LOGFIRE_TOKEN`).
 11. Click **Save**.
 
 ---
@@ -176,7 +193,7 @@ Now we connect your GitHub/GitLab repository to GCP so that pushing code automat
    - Select your provider (GitHub or GitLab).
    - Authenticate and authorize Google Cloud.
    - Select your specific repository (e.g., `Aanand2204/AI-Cloth-Store`).
-4. **Branch:** type `^01-store-only$` (this means it will only trigger when you push to the `01-store-only` branch — change it if you're deploying a different branch).
+4. **Branch:** type `^main$` (This means it will only trigger when you push to the `main` branch. Change it to `^master$` if your branch is named master).
 5. **Configuration:** Select **Cloud Build configuration file (yaml or json)**.
 6. **Location:** Type `cloudbuild.yaml`.
 7. **Service Account:** Select the service account.
@@ -203,9 +220,9 @@ If your build succeeds but your website shows a "Service Unavailable" or crashes
 
 ### 1. Config comes from Secret Manager
 
-`cloudbuild.yaml` already injects `MONGO_URI` and `GOOGLE_CLIENT_ID` from the
-secrets you created in Phase 2 (the `--set-secrets` line). You do **not** add
-them by hand on the Cloud Run service.
+`cloudbuild.yaml` already injects `MONGO_URI`, `GOOGLE_CLIENT_ID`,
+`GROQ_API_KEY`, and `LOGFIRE_TOKEN` from the secrets you created in Phase 2
+(the `--set-secrets` line). You do **not** add them by hand on the Cloud Run service.
 
 If a value is wrong or you rotated the DB password:
 
@@ -213,10 +230,10 @@ If a value is wrong or you rotated the DB password:
 2. Click the secret (e.g. `MONGO_URI`) → **+ NEW VERSION** → paste the new value → **Add New Version**.
 3. Re-run the trigger (Phase 6) so a new revision picks up `:latest`.
 
-To confirm what a running revision sees: **Cloud Run** → service `store` →
+To confirm what a running revision sees: **Cloud Run** → service `main-app` →
 **Revisions** tab → select the revision → **Variables & Secrets**.
 
 ### 2. Get Your Live URL
-Once the deployment finishes, look at the top of the Cloud Run service page. You will see a URL that looks like `https://store-xxxxx-uc.a.run.app`.
+Once the deployment finishes, look at the top of the Cloud Run service page. You will see a URL that looks like `https://main-app-xxxxx-uc.a.run.app`.
 
 **Click it! Your application is now live on the internet!**

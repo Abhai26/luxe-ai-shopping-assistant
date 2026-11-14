@@ -7,3 +7,4 @@ export * from './api/auth.js';
 export * from './api/products.js';
 export * from './api/cart.js';
 export * from './api/orders.js';
+export * from './api/chat.js';

@@ -924,6 +924,166 @@ body {
   background-color: var(--danger-hover);
 }
 
+/* Chatbot */
+.chatbot-container {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 50;
+}
+
+.chatbot-toggle {
+  background-color: var(--ink);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+.chatbot-window {
+  margin-top: 0.75rem;
+  width: 25rem;
+  height: 34.375rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-header {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  background-color: var(--ink);
+  color: white;
+  border-radius: 1rem 1rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chatbot-clear {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: white;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 9999px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+}
+
+.chatbot-clear:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.chatbot-messages {
+  flex: 1;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
+.chatbot-typing {
+  font-size: 0.875rem;
+  color: var(--muted-faint);
+  margin-bottom: 0.5rem;
+}
+
+.message {
+  margin-bottom: 0.75rem;
+}
+
+.message-user {
+  text-align: right;
+}
+
+.message-user p {
+  display: inline-block;
+  background-color: var(--ink);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.message-bot {
+  text-align: left;
+}
+
+.message-bot p {
+  display: inline-block;
+  background-color: var(--border);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.message-products {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.product-recommendation {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.product-recommendation:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.product-recommendation img {
+  height: 5rem;
+  width: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.product-recommendation p {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.product-recommendation .price {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.chatbot-input {
+  padding: 0.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chatbot-input input {
+  flex: 1;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+}
+
+.chatbot-input button {
+  background-color: var(--ink);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+}
+
+.chatbot-input button:hover {
+  background-color: var(--ink-soft);
+}
+
 /* Loading */
 .loading {
   padding: 2.5rem;
@@ -952,6 +1112,13 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+}
+
+/* Chatbot inline note (product-search confirmation / "no results") */
+.chatbot-note {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
 }
 
 /* Green "logged in" dot on the account icon */

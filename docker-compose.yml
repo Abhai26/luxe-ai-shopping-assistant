@@ -1,0 +1,23 @@
+# Local stack: storefront + API + local MongoDB.
+#   cp .env.example .env   # set GROQ_API_KEY (MONGO_URI is overridden below)
+#   docker compose up --build   →  http://localhost:8000
+services:
+  luxe:
+    build: .
+    env_file: .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+    ports: ["8000:8000"]
+    depends_on:
+      mongo: { condition: service_healthy }
+
+  mongo:
+    image: mongo:7
+    volumes: ["mongo-data:/data/db"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  mongo-data:

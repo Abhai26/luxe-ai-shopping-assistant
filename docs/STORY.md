@@ -6,11 +6,12 @@ scoping it, proving it, writing the production code, wiring it into the client's
 system, and keeping it honest with evals.
 
 The standard arc is **Discovery → POC → Harden & Integrate**. LUXE walks through
-it across three branches.
+it across three stages, each preserved as a git tag
+(`01-store-only`, `02-chatbot-poc`) plus `main`.
 
 ---
 
-## Branch `01-store-only` — Discovery
+## Stage 1: `01-store-only` — Discovery
 
 **The situation.** The client, LUXE, already runs an online clothing store:
 FastAPI, MongoDB Atlas, a plain-JavaScript storefront, cart, orders, accounts,
@@ -28,13 +29,13 @@ There is **no AI anywhere in it**.
 - Come back with a proposal: a natural-language product search — turn a
   sentence into a database query — proven first in isolation, then integrated.
 
-This branch is the client's app **exactly as it was handed over**. Nothing is
+This snapshot is the client's app **exactly as it was handed over**. Nothing is
 removed or simplified beyond taking the AI out — because there was never any AI
 in it.
 
 ---
 
-## Branch `02-chatbot-poc` — the POC
+## Stage 2: `02-chatbot-poc` — the POC
 
 **The goal.** Show, in isolation, that the assistant idea works on the client's
 real data — before touching the client's codebase.
@@ -61,7 +62,7 @@ The client sees it working against the live catalog, and approves.
 
 ---
 
-## Branch `main` — Integration
+## Stage 3: `main` — Integration
 
 **The job.** Take the approved POC and make it part of the real product,
 production-grade.
@@ -92,7 +93,7 @@ an addition, not a rewrite.
 
 ---
 
-## How the branches relate
+## How the stages relate
 
 ```
 01-store-only ──┐
@@ -100,8 +101,8 @@ an addition, not a rewrite.
 02-chatbot-poc ─┘
 ```
 
-- `main` is the **living** branch — the finished product.
-- `01-store-only` and `02-chatbot-poc` are **frozen snapshots** — each is "what
+- `main` is the **living** branch (the only branch) — the finished product.
+- `01-store-only` and `02-chatbot-poc` are **frozen snapshots**, kept as git tags — each is "what
   the client saw at that stage". They are derived from `main` by removing code,
   never maintained in parallel, so a change on `main` never forces edits on them.
 - The overlap that matters — `agent.py`, `guardrails.py`, `pipeline.py` — is

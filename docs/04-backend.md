@@ -26,7 +26,7 @@ backend/
     mongo.py        small reusable query fragments (case-insensitive match)
     passwords.py    bcrypt hash / verify
     users.py        turn a user document into a safe public object (never leak the hash)
-  chatbot/          the portable assistant package (kept in sync with the POC branch)
+  chatbot/          the portable assistant package (kept in sync with the POC snapshot)
     agent.py        the Pydantic AI agent + its search_products tool
     guardrails.py   the two safety-model checks
     pipeline.py     run_chat(): guards -> agent -> guard -> response dict

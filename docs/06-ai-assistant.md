@@ -67,7 +67,7 @@ shaping — lives in one function, `run_chat(message)` in
 (`{type, message, data}`) and never raises.
 
 `backend/routes/chatbot.py` is then just a three‑line HTTP wrapper around it.
-The standalone chatbot POC (branch `02-chatbot-poc`) calls the **same**
+The standalone chatbot POC (snapshot `02-chatbot-poc`) calls the **same**
 `run_chat` from its own endpoint — one pipeline, two front doors. That is what
 makes "we just dropped the POC in" true at integration time.
 

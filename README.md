@@ -22,13 +22,13 @@ LUXE is a working online clothing store with a catalog, cart, orders, accounts, 
 
 This repo is the answer, delivered the way a **Forward Deployed AI Engineer** would:
 
-| Stage | Branch | What happened |
+| Stage | Snapshot (git tag) | What happened |
 |---|---|---|
 | 🔍 **Discovery** | [`01-store-only`](../../tree/01-store-only) | The client's app exactly as handed over. I learned the data model (4 Mongo collections), the identity model and the deployment. **No AI.** |
 | 🧪 **POC** | [`02-chatbot-poc`](../../tree/02-chatbot-poc) | Proved the idea **in isolation, against the real catalog**: one `POST /chat`, one tool, guardrails, a demo page. Nothing else. |
 | 🚀 **Integration** | `main` *(you are here)* | Dropped the POC's `chatbot/` package into the store **unchanged**, then added live evals, an offline eval suite and end-to-end tracing. |
 
-The chatbot package (`agent.py`, `guardrails.py`, `pipeline.py`) is **byte-for-byte identical** on `02-chatbot-poc` and `main`. "We just dropped the POC in" is literally true, and `git diff` proves it.
+The chatbot package (`agent.py`, `guardrails.py`, `pipeline.py`) is **byte-for-byte identical** in the `02-chatbot-poc` snapshot and on `main`. "We just dropped the POC in" is literally true, and `git diff` proves it.
 
 Now a customer can type *"men's shirts under ₹2000"*. The agent turns that sentence into a safe MongoDB query and returns real product cards from the live catalog, with no filters and no menus.
 
@@ -95,7 +95,7 @@ sequenceDiagram
     Note over P,A: async: online evaluators score the reply → Logfire
 ```
 
-### How the branches relate
+### How the stages relate
 
 ```mermaid
 gitGraph
@@ -184,7 +184,7 @@ Load the sample catalog through **Admin → Bulk import** with `demo_data/bulk_u
 
 | | |
 |---|---|
-| [The FDE story](docs/STORY.md) | How the three branches fit together |
+| [The FDE story](docs/STORY.md) | How the three stages fit together |
 | [Integration walkthrough](docs/INTEGRATION.md) | Every file the AI touches, store → main |
 | [Architecture](docs/02-architecture.md) · [AI assistant](docs/06-ai-assistant.md) | Request walkthroughs, pipeline, guardrails |
 | [Frontend](docs/03-frontend.md) · [Backend](docs/04-backend.md) · [Database](docs/05-database.md) | Each layer in detail |

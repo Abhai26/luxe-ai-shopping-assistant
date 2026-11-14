@@ -202,7 +202,7 @@ for chat results.
 ## 10. Documentation-only additions
 
 - `docs/06-ai-assistant.md` — full walkthrough of the pipeline (this doc numbers itself 6; `01-store-only`'s deployment doc is numbered 6 there instead, since it has no AI doc to make room for).
-- `docs/STORY.md` — the three-branch narrative this whole repo is built around.
+- `docs/STORY.md` — the three-stage narrative this whole repo is built around.
 
 ---
 

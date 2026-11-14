@@ -22,13 +22,13 @@ LUXE is a working online clothing store with a catalog, cart, orders, accounts, 
 
 This repo is the answer, delivered the way a **Forward Deployed AI Engineer** would:
 
-| Stage | Release snapshot | What happened |
-|---|---|---|
-| 🔍 **Discovery** | [`v1-store-only`](../../tree/v1-store-only) | The client's app exactly as handed over. I learned the data model (4 Mongo collections), the identity model and the deployment. **No AI.** |
-| 🧪 **POC** | [`v2-chatbot-poc`](../../tree/v2-chatbot-poc) | Proved the idea **in isolation, against the real catalog**: one `POST /chat`, one tool, guardrails, a demo page. Nothing else. |
-| 🚀 **Integration** | `main` *(you are here)* | Dropped the POC's `chatbot/` package into the store **unchanged**, then added live evals, an offline eval suite and end-to-end tracing. |
+| Stage | What happened |
+|---|---|
+| 🔍 **Discovery** | The client's app exactly as handed over. I learned the data model (4 Mongo collections), the identity model and the deployment. **No AI.** |
+| 🧪 **POC** | Proved the idea **in isolation, against the real catalog**: one `POST /chat`, one tool, guardrails, a demo page. Nothing else. |
+| 🚀 **Integration** *(this repo)* | Dropped the POC's `chatbot/` package into the store **unchanged**, then added live evals, an offline eval suite and end-to-end tracing. |
 
-The chatbot package (`agent.py`, `guardrails.py`, `pipeline.py`) is **byte-for-byte identical** in the `v2-chatbot-poc` release and on `main`. "We just dropped the POC in" is literally true, and `git diff` proves it.
+The POC was built as a self-contained `chatbot/` package (`agent.py`, `guardrails.py`, `pipeline.py`), so integration meant dropping it into `backend/chatbot/` **unchanged**. The store's own code stayed untouched. The commit history follows the same arc: the first commit is the client's store as handed over, and the next adds the integrated assistant.
 
 Now a customer can type *"men's shirts under ₹2000"*. The agent turns that sentence into a safe MongoDB query and returns real product cards from the live catalog, with no filters and no menus.
 
@@ -99,8 +99,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    S1["v1-store-only<br/>client's store, no AI"] -->|"discovery → POC"| S2["v2-chatbot-poc<br/>isolated assistant"]
-    S1 -->|"store carried over unchanged"| M["main<br/>integrated + evals + tracing"]
+    S1["Discovery<br/>client's store, no AI"] -->|"prove the idea"| S2["POC<br/>isolated assistant"]
+    S1 -->|"store carried over unchanged"| M["Integration<br/>store + assistant + evals + tracing"]
     S2 -->|"chatbot/ package dropped in"| M
 ```
 
